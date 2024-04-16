@@ -81,7 +81,7 @@ export const login = (req: IncomingMessage, res: ServerResponse) => {
         return;
       }
 
-      res.writeHead(201, { "Content-Type": "application/json" });
+      res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ message: "You are now logged in." }));
     } catch (error) {
       console.error(error);
@@ -137,4 +137,34 @@ export const createPatient = (req: IncomingMessage, res: ServerResponse) => {
       res.end(JSON.stringify({ error: "Internal server error" }));
     }
   });
+};
+
+export const getPatients = async (
+  req: IncomingMessage,
+  res: ServerResponse
+) => {
+  if (req.url) {
+    try {
+      const memberId = req.url.split("/")[2];
+      const patients = await store.patient.findMany({
+        where: { memberId: memberId as string },
+      });
+
+      if (!patients) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Patient not found" }));
+        return;
+      }
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(patients));
+    } catch (error) {
+      console.error(error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Internal server error" }));
+    }
+  } else {
+    res.writeHead(404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Route not found" }));
+  }
 };
