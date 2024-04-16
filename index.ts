@@ -1,5 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { createMember, login } from "./api";
+import { createMember, login, createPatient } from "./api";
 
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   switch (req.url) {
@@ -8,6 +8,9 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
       break;
     case "/login":
       req.method === "POST" ? login(req, res) : sendNotFound(res);
+      break;
+    case "/createPatient":
+      req.method === "POST" ? createPatient(req, res) : sendNotFound(res);
       break;
     default:
       sendNotFound(res);

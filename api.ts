@@ -23,7 +23,7 @@ export const createMember = (req: IncomingMessage, res: ServerResponse) => {
 
       if (existingMember) {
         res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Phone already exists" }));
+        res.end(JSON.stringify({ error: "Phone already exists." }));
         return;
       }
 
@@ -42,7 +42,7 @@ export const createMember = (req: IncomingMessage, res: ServerResponse) => {
       res.writeHead(201, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
-          message: "Member registered successfully",
+          message: "Member registered successfully.",
           member: newMember,
         })
       );
@@ -83,6 +83,54 @@ export const login = (req: IncomingMessage, res: ServerResponse) => {
 
       res.writeHead(201, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ message: "You are now logged in." }));
+    } catch (error) {
+      console.error(error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Internal server error" }));
+    }
+  });
+};
+
+export const createPatient = (req: IncomingMessage, res: ServerResponse) => {
+  let body = "";
+
+  req.on("data", (chunk) => {
+    body += chunk;
+  });
+
+  req.on("end", async () => {
+    const { memberId, name, patientId, birthday, address } = JSON.parse(body);
+
+    const existingPatientId = await store.patient.findFirst({
+      where: {
+        patientId: patientId as string,
+      },
+    });
+
+    if (existingPatientId) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "The patient ID already exists." }));
+      return;
+    }
+
+    const newPatient = await store.patient.create({
+      data: {
+        memberId: memberId as string,
+        name: name as string,
+        patientId: patientId as string,
+        birthday: birthday as Date,
+        address: address as string,
+      },
+    });
+
+    res.writeHead(201, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        message: "Patient created successfully.",
+        patient: newPatient,
+      })
+    );
+    try {
     } catch (error) {
       console.error(error);
       res.writeHead(500, { "Content-Type": "application/json" });

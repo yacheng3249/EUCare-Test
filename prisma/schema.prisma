@@ -17,6 +17,19 @@ model Member {
   id        String  @id @default(uuid())
   phone     String
   password  String
+  patients  Patient[]
 
   @@map("members")
+}
+
+model Patient {
+  id         String  @id @default(uuid())
+  member     Member    @relation(fields: [memberId], references: [id])
+  memberId   String
+  name       String
+  patientId  String
+  birthday   DateTime?  @db.Date
+  address    String
+
+  @@map("patients")
 }
