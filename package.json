@@ -18,9 +18,13 @@
   },
   "homepage": "https://github.com/yacheng3249/EUCare-Test#readme",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.12.7",
     "prisma": "^5.12.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.12.1"
   }
 }
