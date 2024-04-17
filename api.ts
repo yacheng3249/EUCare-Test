@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse } from "http";
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 
-const store = new PrismaClient();
+const prisma = new PrismaClient();
 
 export const createMember = (req: IncomingMessage, res: ServerResponse) => {
   let body = "";
@@ -15,10 +15,8 @@ export const createMember = (req: IncomingMessage, res: ServerResponse) => {
     const { phone, password } = JSON.parse(body);
 
     try {
-      const existingMember = await store.member.findFirst({
-        where: {
-          phone: phone as string,
-        },
+      const existingMember = await prisma.member.findFirst({
+        where: { phone },
       });
 
       if (existingMember) {
@@ -32,10 +30,10 @@ export const createMember = (req: IncomingMessage, res: ServerResponse) => {
         Number(process.env.SALT_ROUNDS)
       );
 
-      const newMember = await store.member.create({
+      const newMember = await prisma.member.create({
         data: {
-          phone: phone as string,
-          password: hashedPassword as string,
+          phone,
+          password: hashedPassword,
         },
       });
 
@@ -65,8 +63,8 @@ export const login = (req: IncomingMessage, res: ServerResponse) => {
     const { phone, password } = JSON.parse(body);
 
     try {
-      const member = await store.member.findFirst({
-        where: { phone: phone as string },
+      const member = await prisma.member.findFirst({
+        where: { phone },
       });
       if (!member) {
         res.writeHead(400, { "Content-Type": "application/json" });
@@ -101,10 +99,8 @@ export const createPatient = (req: IncomingMessage, res: ServerResponse) => {
   req.on("end", async () => {
     const { memberId, name, patientId, birthday, address } = JSON.parse(body);
 
-    const existingPatientId = await store.patient.findFirst({
-      where: {
-        patientId: patientId as string,
-      },
+    const existingPatientId = await prisma.patient.findFirst({
+      where: { patientId },
     });
 
     if (existingPatientId) {
@@ -113,13 +109,13 @@ export const createPatient = (req: IncomingMessage, res: ServerResponse) => {
       return;
     }
 
-    const newPatient = await store.patient.create({
+    const newPatient = await prisma.patient.create({
       data: {
-        memberId: memberId as string,
-        name: name as string,
-        patientId: patientId as string,
-        birthday: birthday as Date,
-        address: address as string,
+        memberId,
+        name,
+        patientId,
+        birthday,
+        address,
       },
     });
 
@@ -146,13 +142,13 @@ export const getPatients = async (
   if (req.url) {
     try {
       const memberId = req.url.split("/")[2];
-      const patients = await store.patient.findMany({
-        where: { memberId: memberId as string },
+      const patients = await prisma.patient.findMany({
+        where: { memberId },
       });
 
-      if (!patients) {
-        res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Patient not found" }));
+      if (!patients || patients.length === 0) {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end(JSON.stringify("Patient not found"));
         return;
       }
 
@@ -167,4 +163,106 @@ export const getPatients = async (
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Route not found" }));
   }
+};
+
+export const createAppointment = (
+  req: IncomingMessage,
+  res: ServerResponse
+) => {
+  let body = "";
+
+  req.on("data", (chunk) => {
+    body += chunk;
+  });
+
+  req.on("end", async () => {
+    try {
+      const { nationalId, consultationContent, date, time } = JSON.parse(body);
+
+      const patient = await prisma.patient.findFirst({
+        where: { patientId: nationalId },
+      });
+
+      if (!patient) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error:
+              "Patient not found. Please check the national ID and try again.",
+          })
+        );
+        return;
+      }
+
+      if (patient.appointmentAmount >= 2) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error:
+              "You have reached the maximum number (2) of appointments per patient.",
+          })
+        );
+        return;
+      }
+
+      const member = await prisma.member.findFirst({
+        where: { id: patient.memberId },
+      });
+
+      if (!member) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: "Member not found",
+          })
+        );
+        return;
+      }
+
+      if (member.appointmentAmount >= 5) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error:
+              "You have reached the maximum number (5) of appointments per member.",
+          })
+        );
+        return;
+      }
+
+      const appointment = await prisma.appointment.create({
+        data: {
+          patientId: patient.id,
+          consultationContent,
+          date,
+          time,
+        },
+      });
+
+      await prisma.patient.update({
+        where: { id: patient.id },
+        data: {
+          appointmentAmount: {
+            increment: 1,
+          },
+        },
+      });
+
+      await prisma.member.update({
+        where: { id: member.id },
+        data: {
+          appointmentAmount: {
+            increment: 1,
+          },
+        },
+      });
+
+      res.writeHead(201, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(appointment));
+    } catch (error) {
+      console.error(error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Internal server error" }));
+    }
+  });
 };

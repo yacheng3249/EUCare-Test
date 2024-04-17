@@ -14,22 +14,36 @@ datasource db {
 }
 
 model Member {
-  id        String  @id @default(uuid())
-  phone     String
-  password  String
-  patients  Patient[]
+  id                 String  @id @default(uuid())
+  phone              String
+  password           String
+  appointmentAmount  Int     @default(0)
+  patients           Patient[]
 
   @@map("members")
 }
 
 model Patient {
-  id         String  @id @default(uuid())
-  member     Member    @relation(fields: [memberId], references: [id])
-  memberId   String
-  name       String
-  patientId  String
-  birthday   DateTime?  @db.Date
-  address    String
+  id                 String    @id @default(uuid())
+  member             Member    @relation(fields: [memberId], references: [id])
+  memberId           String
+  name               String
+  patientId          String
+  birthday           DateTime
+  address            String
+  appointmentAmount  Int       @default(0)
+  appointments       Appointment[]
 
   @@map("patients")
+}
+
+model Appointment {
+  id                   String    @id @default(uuid())
+  patient              Patient   @relation(fields: [patientId], references: [id])
+  patientId            String
+  consultationContent  String
+  date                 DateTime
+  time                 String
+
+  @@map("appointments")
 }

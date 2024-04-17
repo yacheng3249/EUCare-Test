@@ -1,5 +1,11 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { createMember, login, createPatient, getPatients } from "./api";
+import {
+  createMember,
+  login,
+  createPatient,
+  getPatients,
+  createAppointment,
+} from "./api";
 
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   if (req.url === "/register" && req.method === "POST") {
@@ -16,36 +22,18 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 
   if (
     req.url &&
-    req.url.split("/")[1] === "getPatient" &&
+    req.url.split("/")[1] === "getPatients" &&
     req.method === "GET"
   ) {
     return getPatients(req, res);
   }
 
+  if (req.url === "/createAppointment" && req.method === "POST") {
+    return createAppointment(req, res);
+  }
+
   res.writeHead(404, { "Content-Type": "text/plain" });
   res.end("Not Found");
-
-  // switch (req.url) {
-  //   case "/register":
-  //     req.method === "POST" ? createMember(req, res) : sendNotFound(res);
-  //     break;
-  //   case "/login":
-  //     req.method === "POST" ? login(req, res) : sendNotFound(res);
-  //     break;
-  //   case "/createPatient":
-  //     req.method === "POST" ? createPatient(req, res) : sendNotFound(res);
-  //     break;
-  //   case "/getPatient/:patientId":
-  //     req.method === "GET" ? getPatient(req, res) : sendNotFound(res);
-  //     break;
-  //   default:
-  //     sendNotFound(res);
-  // }
-
-  // function sendNotFound(res: ServerResponse) {
-  //   res.writeHead(404, { "Content-Type": "text/plain" });
-  //   res.end("Not Found");
-  // }
 });
 
 server.listen(3000, () => {
