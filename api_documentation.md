@@ -70,7 +70,7 @@
     "memberId": "637e23cc-65e8-4c2f-a65b-a6cbb2a8e8fc",
     "name": "Jamie",
     "patientId": "D123456789",
-    "birthday": "{{Date}}",
+    "birthday": "2024-04-16",
     "address": "address"
     }
 - response
@@ -82,7 +82,7 @@
     "memberId": "637e23cc-65e8-4c2f-a65b-a6cbb2a8e8fc",
     "name": "Jamie",
     "patientId": "D123456789",
-    "birthday": "2024-04-16T00:00:00.000Z",
+    "birthday": "2024-04-16",
     "address": "address"
     }
     }
@@ -103,7 +103,7 @@
     "memberId": "637e23cc-65e8-4c2f-a65b-a6cbb2a8e8fc",
     "name": "Jamie",
     "patientId": "U123456789",
-    "birthday": "2024-04-16T00:00:00.000Z",
+    "birthday": "2024-04-16",
     "address": "address",
     "appointmentAmount": 0
     }
@@ -126,8 +126,8 @@
     {
     "nationalId": "U123456789",
     "consultationContent": "Not feeling good in my stomach",
-    "date": "{{Date}}",
-    "time": "14:00"
+    "date": "2024-04-17",
+    "time": "14:00 - 15:00"
     }
 - response
   - status code 201
@@ -135,8 +135,8 @@
     "id": "0629fdf4-2bb6-451c-b722-e1ce651cfc12",
     "patientId": "ddaa35f7-e82d-44a5-9e22-8065703bd180",
     "consultationContent": "Not feeling good in my stomach",
-    "date": "2024-04-17T13:51:39.821Z",
-    "time": "14:00"
+    "date": "2024-04-17",
+    "time": "14:00 - 15:00"
     }
   - status code 404
     {
