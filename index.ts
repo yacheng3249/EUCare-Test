@@ -7,33 +7,38 @@ import {
   createAppointment,
 } from "./api";
 
+interface Routes {
+  [method: string]: {
+    [url: string]: (req: IncomingMessage, res: ServerResponse) => void;
+  };
+}
+
+const routes: Routes = {
+  POST: {
+    register: createMember,
+    login: login,
+    createPatient: createPatient,
+    createAppointment: createAppointment,
+  },
+  GET: {
+    getPatients: getPatients,
+  },
+};
+
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-  if (req.url === "/register" && req.method === "POST") {
-    return createMember(req, res);
+  const url = req.url?.split("/")[1];
+  let routeHandler;
+
+  if (req.method && url) {
+    routeHandler = routes[req.method] && routes[req.method][url];
   }
 
-  if (req.url === "/login" && req.method === "POST") {
-    return login(req, res);
+  if (routeHandler) {
+    routeHandler(req, res);
+  } else {
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end("Route Not Found");
   }
-
-  if (req.url === "/createPatient" && req.method === "POST") {
-    return createPatient(req, res);
-  }
-
-  if (
-    req.url &&
-    req.url.split("/")[1] === "getPatients" &&
-    req.method === "GET"
-  ) {
-    return getPatients(req, res);
-  }
-
-  if (req.url === "/createAppointment" && req.method === "POST") {
-    return createAppointment(req, res);
-  }
-
-  res.writeHead(404, { "Content-Type": "text/plain" });
-  res.end("Not Found");
 });
 
 server.listen(3000, () => {
